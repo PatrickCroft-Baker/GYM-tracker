@@ -167,6 +167,9 @@ input[type=number]::-webkit-outer-spin-button { opacity: 1; }
 </head>
 <body>
 
+<div id="offline-banner" style="display:none;background:var(--warn-bg);color:var(--warn);font-size:12px;font-family:'DM Mono',monospace;padding:7px 20px;border-bottom:1.5px solid var(--warn);text-align:center;letter-spacing:0.3px">
+  Offline — logs saving locally, will sync when back online
+</div>
 <div class="app-header">
   <h1>Workout Tracker</h1>
   <div class="sub" id="today-date"></div>
@@ -292,9 +295,34 @@ function fmtDate(iso) {
   return parseInt(parts[2]) + ' ' + months[parseInt(parts[1])-1] + ' ' + parts[0];
 }
 
-// ===== localStorage — drafts and session state only =====
+// ===== localStorage — drafts, session state, offline queue =====
 const DRAFT_KEY = 'wt_drafts_v2';
 const SESSION_KEY = 'wt_session_v1';
+const QUEUE_KEY = 'wt_offline_queue_v1';
+function getQueue() { try { return JSON.parse(localStorage.getItem(QUEUE_KEY)) || []; } catch(e) { return []; } }
+function saveQueue(q) { localStorage.setItem(QUEUE_KEY, JSON.stringify(q)); }
+
+function updateOfflineBanner() {
+  var banner = document.getElementById('offline-banner');
+  if (banner) banner.style.display = navigator.onLine ? 'none' : 'block';
+}
+
+async function flushQueue() {
+  var q = getQueue();
+  if (!q.length) return;
+  var failed = [];
+  for (var i = 0; i < q.length; i++) {
+    var item = q[i];
+    var res = await sb.from('workout_logs').upsert(item, { onConflict: 'ex_id,log_date' });
+    if (res.error) failed.push(item);
+  }
+  saveQueue(failed);
+  var synced = q.length - failed.length;
+  if (synced > 0) showToast(synced + ' offline log' + (synced !== 1 ? 's' : '') + ' synced \u2713');
+}
+
+window.addEventListener('online', function() { updateOfflineBanner(); flushQueue(); });
+window.addEventListener('offline', updateOfflineBanner);
 function getDrafts() { try { return JSON.parse(localStorage.getItem(DRAFT_KEY)) || {}; } catch(e) { return {}; } }
 function saveDrafts(d) { localStorage.setItem(DRAFT_KEY, JSON.stringify(d)); }
 function getSession() { try { return JSON.parse(localStorage.getItem(SESSION_KEY)) || {}; } catch(e) { return {}; } }
@@ -319,12 +347,14 @@ async function getLogs() {
 }
 
 async function addLog(exId, exName, setsData) {
-  var result = await sb.from('workout_logs').upsert({
-    log_date: todayISO(),
-    ex_id: exId,
-    ex_name: exName,
-    sets: setsData
-  }, { onConflict: 'ex_id,log_date' });
+  var payload = { log_date: todayISO(), ex_id: exId, ex_name: exName, sets: setsData };
+  if (!navigator.onLine) {
+    var q = getQueue().filter(function(i) { return !(i.ex_id === exId && i.log_date === todayISO()); });
+    q.push(payload);
+    saveQueue(q);
+    return;
+  }
+  var result = await sb.from('workout_logs').upsert(payload, { onConflict: 'ex_id,log_date' });
   if (result.error) throw result.error;
 }
 
@@ -995,6 +1025,11 @@ function showToast(msg, err) {
 
 document.getElementById('today-date').textContent =
   new Date().toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+updateOfflineBanner();
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(function(err) { console.warn('SW:', err); });
+}
 
 buildLogView();
 </script>
