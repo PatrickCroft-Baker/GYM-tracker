@@ -212,6 +212,12 @@ input[type=number]::-webkit-outer-spin-button { opacity: 1; }
 <div id="view-history" class="view">
   <div class="filter-row">
     <select class="filter-select" id="filter-ex" onchange="renderHistory()"><option value="">All exercises</option></select>
+    <select class="filter-select" id="filter-period" onchange="renderHistory()" style="min-width:130px">
+      <option value="">All time</option>
+      <option value="7">Last 7 days</option>
+      <option value="30">Last 30 days</option>
+      <option value="90">Last 90 days</option>
+    </select>
     <button class="btn-sm" onclick="clearFilters()">Clear</button>
     <button class="btn-sm" onclick="exportCSV()">Export CSV</button>
     <button class="btn-sm-danger" onclick="clearAll()">Delete All</button>
@@ -720,8 +726,17 @@ async function renderHistory() {
     sel.appendChild(o);
   });
 
+  var period = document.getElementById('filter-period').value;
+  var cutoffISO = '';
+  if (period) {
+    var cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - parseInt(period));
+    cutoffISO = cutoff.toISOString().slice(0, 10);
+  }
+
   var filtered = logs.slice().reverse();
   if (cur) filtered = filtered.filter(function(l) { return l.exId === cur; });
+  if (cutoffISO) filtered = filtered.filter(function(l) { return l.date >= cutoffISO; });
 
   list.textContent = '';
   if (!filtered.length) {
@@ -809,7 +824,11 @@ async function delLog(id) {
   renderHistory();
 }
 
-function clearFilters() { document.getElementById('filter-ex').value = ''; renderHistory(); }
+function clearFilters() {
+  document.getElementById('filter-ex').value = '';
+  document.getElementById('filter-period').value = '';
+  renderHistory();
+}
 
 async function clearAll() {
   if (!confirm('Delete ALL data? Cannot be undone.')) return;
