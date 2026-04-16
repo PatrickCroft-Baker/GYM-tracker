@@ -1,5 +1,5 @@
 # Workout Tracker — Handover
-Last updated: 2026-04-16 19:30
+Last updated: 2026-04-16 21:00
 
 ## Project goal
 Mobile-first workout logging PWA — logs sets to Supabase, works offline, Week A/B program with editable exercises.
@@ -15,6 +15,7 @@ Mobile-first workout logging PWA — logs sets to Supabase, works offline, Week 
 - Service worker caches all assets (cache-first) — reload works offline after first visit
 - History tab: filters, CSV export, delete
 - Progress tab: stats + first vs latest weight bars
+- Input cascade autofill fires on blur (not keystroke) — typing "10" no longer cascades "1" mid-type
 
 ## Active branch / environment
 - Branch: `main`
