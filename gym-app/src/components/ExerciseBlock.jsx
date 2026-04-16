@@ -33,9 +33,23 @@ export default function ExerciseBlock({ ex, autoOpen, last, isLogged, timer, onS
   }, [ex.id, ex.sets, last]);
 
   function updateRow(idx, field, val) {
+    // Update only this cell — no cascade yet (cascade happens on blur)
     setRows(prev => {
+      const next = prev.map((r, i) => i === idx ? { ...r, [field]: val, autofilled: false } : r);
+      const drafts = getDrafts();
+      drafts[ex.id] = next.map(r => ({ reps: r.reps, weight: r.weight }));
+      saveDrafts(drafts);
+      return next;
+    });
+  }
+
+  function cascadeRow(idx, field, val) {
+    // On blur: fill empty cells below with the finished value
+    if (!val) return;
+    setRows(prev => {
+      const hasEmpty = prev.slice(idx + 1).some(r => !r[field]);
+      if (!hasEmpty) return prev;
       const next = prev.map((r, i) => {
-        if (i === idx) return { ...r, [field]: val, autofilled: false };
         if (i > idx && !prev[i][field]) return { ...r, [field]: val, autofilled: false };
         return r;
       });
@@ -116,6 +130,7 @@ export default function ExerciseBlock({ ex, autoOpen, last, isLogged, timer, onS
                     value={row.reps}
                     onFocus={e => { updateRow(i, 'reps', e.target.value); }}
                     onChange={e => updateRow(i, 'reps', e.target.value)}
+                    onBlur={e => cascadeRow(i, 'reps', e.target.value)}
                   />
                 </div>
                 <div className="set-field">
@@ -126,6 +141,7 @@ export default function ExerciseBlock({ ex, autoOpen, last, isLogged, timer, onS
                     value={row.weight}
                     onFocus={e => { updateRow(i, 'weight', e.target.value); }}
                     onChange={e => updateRow(i, 'weight', e.target.value)}
+                    onBlur={e => cascadeRow(i, 'weight', e.target.value)}
                   />
                 </div>
                 <button className={`set-tick-btn${row.ticked ? ' ticked' : ''}`} onClick={() => tickRow(i)}>✓</button>
