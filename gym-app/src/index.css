@@ -654,6 +654,148 @@ body {
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 .toast.err { background: var(--down); }
 
+/* ── Day edit button ── */
+.day-edit-btn {
+  background: none;
+  border: 1.5px solid var(--border);
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.day-edit-btn:active { background: var(--surface2); }
+
+/* ── Program editor ── */
+.pe-wrap {
+  padding: 12px 16px 16px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+.pe-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pe-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.pe-top-actions {
+  display: flex;
+  gap: 6px;
+}
+.pe-save-btn {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border-color: var(--accent) !important;
+}
+.pe-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.pe-row {
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+.pe-row-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.pe-name-input {
+  flex: 1;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 0 10px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+}
+.pe-name-input:focus { outline: none; border-color: var(--accent); }
+.pe-del-btn {
+  height: 44px;
+  width: 44px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+}
+.pe-del-btn:active { color: var(--down); }
+.pe-row-meta {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+.pe-meta-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pe-meta-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'DM Mono', monospace;
+}
+.pe-meta-input {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 15px;
+  height: 40px;
+  width: 52px;
+  text-align: center;
+  border-radius: var(--radius-sm);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.pe-reps { width: 68px; }
+.pe-meta-input:focus { outline: none; border-color: var(--accent); }
+.pe-rest-select {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  height: 40px;
+  padding: 0 6px;
+  border-radius: var(--radius-sm);
+  min-width: 72px;
+}
+.pe-rest-select:focus { outline: none; border-color: var(--accent); }
+.pe-add-btn {
+  width: 100%;
+  margin-top: 4px;
+}
+
 /* ── Number input spinners ── */
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button { opacity: 1; }
