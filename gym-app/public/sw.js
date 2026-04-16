@@ -1,10 +1,8 @@
-const CACHE = 'lift-log-v1';
+const CACHE = 'lift-log-v3';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
-  e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(['/']))
-  );
+  e.waitUntil(caches.open(CACHE).then(c => c.add('/')));
 });
 
 self.addEventListener('activate', e => {
@@ -17,9 +15,30 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  if (!e.request.url.startsWith(self.location.origin)) return;
+
+  // Navigation (HTML): network first, fall back to cached shell
   if (e.request.mode === 'navigate') {
     e.respondWith(
-      fetch(e.request).catch(() => caches.match('/'))
+      fetch(e.request)
+        .then(res => {
+          caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+          return res;
+        })
+        .catch(() => caches.match('/'))
     );
+    return;
   }
+
+  // Assets (JS, CSS, fonts, images): cache first — serve instantly offline
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      if (cached) return cached;
+      return fetch(e.request).then(res => {
+        if (res.ok) caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+        return res;
+      });
+    })
+  );
 });
