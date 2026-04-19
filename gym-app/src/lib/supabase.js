@@ -22,7 +22,7 @@ export async function getLogs() {
 
 export async function upsertLog(exId, exName, setsData, date) {
   const payload = { log_date: date, ex_id: exId, ex_name: exName, sets: setsData };
-  const { error } = await sb.from('workout_logs').upsert(payload, { onConflict: 'ex_id,log_date' });
+  const { error } = await sb.from('workout_logs').upsert(payload, { onConflict: 'user_id,ex_id,log_date' });
   if (error) throw error;
 }
 

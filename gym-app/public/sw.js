@@ -1,4 +1,4 @@
-const CACHE = 'lift-log-v6';
+const CACHE = 'lift-log-v7';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
