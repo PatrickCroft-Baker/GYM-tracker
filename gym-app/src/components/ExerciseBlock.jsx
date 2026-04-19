@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import RestTimer from './RestTimer';
-import { getDrafts, saveDrafts, getSession } from '../lib/storage';
+import { getDrafts, saveDrafts, getSession, getRestOverrides, saveRestOverrides } from '../lib/storage';
 
 function restLabel(s) {
   if (s >= 60 && s % 60 === 0) return `${s / 60} min`;
@@ -17,6 +17,8 @@ function fmtDate(iso) {
 export default function ExerciseBlock({ ex, autoOpen, last, isLogged, isPR, timer, onStartTimer, onSkipTimer, onSave, onRemove }) {
   const [open, setOpen] = useState(autoOpen);
   const [rows, setRows] = useState([]);
+  const [restSecs, setRestSecs] = useState(() => (getRestOverrides()[ex.id] ?? ex.restSecs));
+  const [editingRest, setEditingRest] = useState(false);
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -60,11 +62,21 @@ export default function ExerciseBlock({ ex, autoOpen, last, isLogged, isPR, time
     });
   }
 
+  function adjustRest(delta) {
+    setRestSecs(prev => {
+      const next = Math.max(15, Math.min(600, prev + delta));
+      const overrides = getRestOverrides();
+      overrides[ex.id] = next;
+      saveRestOverrides(overrides);
+      return next;
+    });
+  }
+
   function tickRow(idx) {
     setRows(prev => {
       const next = prev.map((r, i) => i === idx ? { ...r, ticked: !r.ticked, autofilled: false } : r);
       const nowTicked = next[idx].ticked;
-      if (nowTicked) onStartTimer(ex.id, ex.restSecs);
+      if (nowTicked) onStartTimer(ex.id, restSecs);
       return next;
     });
   }
@@ -101,7 +113,18 @@ export default function ExerciseBlock({ ex, autoOpen, last, isLogged, isPR, time
           <div className="ex-name">{ex.name}</div>
           <div className="ex-meta">
             <span className="badge badge-prescription">{ex.sets} sets · {ex.reps} reps</span>
-            <span className="badge badge-rest">Rest {restLabel(ex.restSecs)}</span>
+            {editingRest ? (
+              <span className="rest-editor" onClick={e => e.stopPropagation()}>
+                <button className="rest-adj-btn" onClick={() => adjustRest(-15)}>−</button>
+                <span className="rest-adj-val">{restLabel(restSecs)}</span>
+                <button className="rest-adj-btn" onClick={() => adjustRest(15)}>+</button>
+                <button className="rest-adj-done" onClick={() => setEditingRest(false)}>✓</button>
+              </span>
+            ) : (
+              <span className="badge badge-rest" onClick={e => { e.stopPropagation(); setEditingRest(true); }}>
+                Rest {restLabel(restSecs)} ✎
+              </span>
+            )}
           </div>
         </div>
         <div className="ex-header-right">

@@ -30,3 +30,7 @@ const SESSION_START_KEY = 'wt_session_start_v1';
 export const getSessionStart = () => parse(SESSION_START_KEY, null);
 export const saveSessionStart = t => localStorage.setItem(SESSION_START_KEY, JSON.stringify(t));
 export const clearSessionStart = () => localStorage.removeItem(SESSION_START_KEY);
+
+const REST_OVERRIDES_KEY = 'wt_rest_overrides_v1';
+export const getRestOverrides = () => parse(REST_OVERRIDES_KEY, {});
+export const saveRestOverrides = o => localStorage.setItem(REST_OVERRIDES_KEY, JSON.stringify(o));

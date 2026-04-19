@@ -1,5 +1,5 @@
 # Workout Tracker — Claude Context
-Last updated: 2026-04-19
+Last updated: 2026-04-19 (Session 2)
 
 ## What this project is
 Mobile-first PWA for logging gym workouts. Logs sets to Supabase cloud DB, works offline with auto-sync, Week A/B alternating program, editable exercises. Multi-user with Supabase Auth (email + password, no email verification).
@@ -37,7 +37,7 @@ gym-app/
       program.js                  # PROGRAM.A (Days 1-4) + PROGRAM.B (Days 5-8)
       storage.js                  # localStorage helpers (drafts, session, queue, week, customProgram, sessionStart)
   public/
-    sw.js                         # Service worker — cache-first for assets (lift-log-v7)
+    sw.js                         # Service worker — cache-first for assets (lift-log-v8)
   netlify.toml                    # CRITICAL: tells Netlify to build + serve dist/
 .claude/
   launch.json                     # Claude Code desktop: starts dev server + opens localhost:5173
@@ -54,6 +54,8 @@ gym-app/
 - Draft saving on every keystroke (survives phone lock)
 - Per-set tick → starts rest timer
 - Rest timer: end-time approach survives Safari backgrounding/phone lock; audio beep (3× 880Hz) + vibrate on finish; persists to localStorage so page reload restores it
+- Editable rest breaks — tap "Rest X min" badge in exercise header to open inline stepper; 15s steps (15s–10min); override saved to localStorage per ex_id (`wt_rest_overrides_v1`); used instead of program default when starting timer
+- Program restructured to 3 upper + 1 lower per week: Day 2 = Legs A, Day 4 = Upper C (Back+Arms), Day 6 = Legs B, Day 8 = Upper F (Back+Arms)
 - PR highlighting — reads historical best BEFORE upsert, shows PR badge + "new best" toast
 - Workout complete summary modal — exercises, total sets, volume, duration; shown on "Log Workout"
 - Session start time tracked in localStorage (wt_session_start_v1) from first exercise saved
@@ -63,8 +65,8 @@ gym-app/
 ## Key rules
 - Do NOT remove auth — it is required for multi-user data isolation
 - Do NOT delete `netlify.toml` — without it Netlify serves raw source (blank page)
-- Increment SW cache name (`lift-log-v7` in `public/sw.js`) whenever assets change
-- localStorage for ephemeral state only (drafts, session, queue, week, customProgram, sessionStart)
+- Increment SW cache name (currently `lift-log-v8` in `public/sw.js`) whenever assets change
+- localStorage for ephemeral state only (drafts, session, queue, week, customProgram, sessionStart, restOverrides)
 - Supabase for permanent data only
 - PR check: always read `getBestWeightForEx` BEFORE calling `upsertLog` — reading after includes the new record
 - upsertLog onConflict must be `user_id,ex_id,log_date` (not ex_id,log_date)

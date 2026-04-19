@@ -1,5 +1,5 @@
 # Workout Tracker — Handover
-Last updated: 2026-04-19
+Last updated: 2026-04-19 (Session 2)
 
 ## Project goal
 Mobile-first workout logging PWA — logs sets to Supabase, works offline, Week A/B program, multi-user auth.
@@ -12,32 +12,32 @@ Mobile-first workout logging PWA — logs sets to Supabase, works offline, Week 
 - Supabase backend — `workout_logs` table with `user_id`, upsert on `(user_id, ex_id, log_date)`
 - Week A (Days 1–4) + Week B (Days 5–8) — toggle in Log tab
 - Program editing — tap Edit on any day card (stored in localStorage)
-- Offline queue — saves to localStorage when no signal, auto-syncs on reconnect
-- Service worker caches all assets (lift-log-v7) — works offline after first visit
-- PR highlighting — badge on exercise + "new best" toast on new personal records
-- Workout summary modal — shown on "Log Workout" (exercises, sets, volume, duration)
-- Rest timer — end-time approach survives Safari backgrounding; beep + vibrate on finish
+- **Editable rest breaks** — tap "Rest X min" badge in any exercise to open stepper; 15s steps; saves override to localStorage per exercise (`wt_rest_overrides_v1`)
+- **New program structure: 3 upper + 1 lower per week** — Day 2 = Legs A, Day 4 = Upper C (Back+Arms), Day 6 = Legs B, Day 8 = Upper F (Back+Arms)
+- Offline queue, service worker (lift-log-v8), PR highlighting, workout summary modal, rest timer
 - History tab: filters, CSV export, delete
 - Progress tab: stats + first vs latest weight bars
-- Patrick's existing data migrated to his account (5 logs linked to his user_id)
 
 ## Active branch / environment
-- Branch: `main` (5 commits ahead of origin — needs push)
+- Branch: `main` (changes uncommitted — see next steps)
 - Netlify site ID: `e4bea86e-99b1-4b75-9b44-ca9dac16fe8a`
 - Supabase project: `tsgqqghdocoeudargsom` (eu-west-1)
 
 ## Next steps (prioritised)
-1. Push the 5 unpushed commits to GitHub (`git push`)
-2. Patrick should change his password (currently weak)
-3. Visual testing on real iPhone Safari — log in, test offline mode
+1. Commit + push this session's changes (5 files modified)
+2. Deploy to Netlify when Patrick says go
+3. Test editable rest on iPhone Safari — tap badge, adjust, tick set, confirm timer uses new value
+4. If Patrick has a saved custom program in localStorage — tap Reset in program editor to pick up new structure
+5. Patrick should change his Supabase account password (still weak)
 
 ## Context warnings
 - `netlify.toml` is CRITICAL — do not delete. Without it Netlify serves raw source (blank white page).
-- SW cache name (`lift-log-v7` in `public/sw.js`) must be incremented whenever assets change.
-- `upsertLog` onConflict MUST be `user_id,ex_id,log_date` — changing it back breaks multi-user isolation.
-- Program edits save to localStorage only (per-device) — not synced to Supabase.
-- Blank screenshots in `gym-app/screenshot-*.png` are from WSL2 headless runs — safe to delete.
-- `docker-compose.yml` and `gym-app/Dockerfile.dev` exist but are unused — can be deleted.
+- SW cache name is now `lift-log-v8` in `public/sw.js` — increment again whenever assets change.
+- `upsertLog` onConflict MUST be `user_id,ex_id,log_date` — changing breaks multi-user isolation.
+- New `program.js` only applies if user has no `wt_custom_program_v1` in localStorage — must reset via program editor.
+- Rest overrides keyed by `ex_id` — new program has new IDs for several exercises (e.g. `lateral_raise` not `lateral_d1`); old overrides won't carry over.
+- Blank screenshots in `gym-app/screenshot-*.png` are WSL2 headless artefacts — safe to delete.
+- `docker-compose.yml` and `gym-app/Dockerfile.dev` exist but are unused.
 - Do NOT deploy automatically — always wait for Patrick to say so.
 
 ## Environment / how to run
