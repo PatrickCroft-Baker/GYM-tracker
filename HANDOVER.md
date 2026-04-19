@@ -1,38 +1,44 @@
 # Workout Tracker — Handover
-Last updated: 2026-04-16 21:00
+Last updated: 2026-04-19
 
 ## Project goal
-Mobile-first workout logging PWA — logs sets to Supabase, works offline, Week A/B program with editable exercises.
+Mobile-first workout logging PWA — logs sets to Supabase, works offline, Week A/B program, multi-user auth.
 
 ## Current state
 **FULLY WORKING.** Live at https://patrick-workout-tracker.netlify.app
 
 - React + Vite app in `gym-app/`
-- Supabase backend (workout_logs table, upsert on ex_id+log_date)
+- Supabase Auth — email + password login/signup, no email verification, RLS user-scoped
+- Supabase backend — `workout_logs` table with `user_id`, upsert on `(user_id, ex_id, log_date)`
 - Week A (Days 1–4) + Week B (Days 5–8) — toggle in Log tab
-- Program editing — tap Edit on any day card
+- Program editing — tap Edit on any day card (stored in localStorage)
 - Offline queue — saves to localStorage when no signal, auto-syncs on reconnect
-- Service worker caches all assets (cache-first) — reload works offline after first visit
+- Service worker caches all assets (lift-log-v7) — works offline after first visit
+- PR highlighting — badge on exercise + "new best" toast on new personal records
+- Workout summary modal — shown on "Log Workout" (exercises, sets, volume, duration)
+- Rest timer — end-time approach survives Safari backgrounding; beep + vibrate on finish
 - History tab: filters, CSV export, delete
 - Progress tab: stats + first vs latest weight bars
-- Input cascade autofill fires on blur (not keystroke) — typing "10" no longer cascades "1" mid-type
+- Patrick's existing data migrated to his account (5 logs linked to his user_id)
 
 ## Active branch / environment
-- Branch: `main`
+- Branch: `main` (5 commits ahead of origin — needs push)
 - Netlify site ID: `e4bea86e-99b1-4b75-9b44-ca9dac16fe8a`
-- Supabase: workout-tracker project, West EU (Ireland)
+- Supabase project: `tsgqqghdocoeudargsom` (eu-west-1)
 
 ## Next steps (prioritised)
-1. Visual testing on real iPhone Safari — open site, add to home screen, test offline (airplane mode after first load)
-2. Food plan tab — new component `FoodView.jsx`, tab bar entry in `App.jsx`
-3. Playwright visual tests — blocked by WSL2 GPU rendering (blank screenshots)
+1. Push the 5 unpushed commits to GitHub (`git push`)
+2. Patrick should change his password (currently weak)
+3. Visual testing on real iPhone Safari — log in, test offline mode
 
 ## Context warnings
 - `netlify.toml` is CRITICAL — do not delete. Without it Netlify serves raw source (blank white page).
-- Service worker cache name (`lift-log-v3` in `public/sw.js`) must be incremented whenever assets change, otherwise users see stale content.
-- Program edits save to localStorage only — historical Supabase logs stay linked to original `ex_id`. Renaming creates a new ID lineage; old logs still accessible in History.
-- Do NOT add auth — anon key is intentional for a single-user personal app.
-- Screenshots in `gym-app/screenshot-*.png` are blank (WSL2 rendering issue) — safe to delete.
+- SW cache name (`lift-log-v7` in `public/sw.js`) must be incremented whenever assets change.
+- `upsertLog` onConflict MUST be `user_id,ex_id,log_date` — changing it back breaks multi-user isolation.
+- Program edits save to localStorage only (per-device) — not synced to Supabase.
+- Blank screenshots in `gym-app/screenshot-*.png` are from WSL2 headless runs — safe to delete.
+- `docker-compose.yml` and `gym-app/Dockerfile.dev` exist but are unused — can be deleted.
+- Do NOT deploy automatically — always wait for Patrick to say so.
 
 ## Environment / how to run
 ```bash
@@ -42,4 +48,4 @@ npm run dev          # local dev server at localhost:5173
 npm run build        # builds to dist/ — what Netlify serves
 ```
 
-Deploy: use Netlify MCP tool from `gym-app/` directory.
+Deploy: use Netlify MCP tool from `gym-app/` directory, only when Patrick explicitly says to.
