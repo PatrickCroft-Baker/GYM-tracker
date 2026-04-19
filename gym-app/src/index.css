@@ -811,22 +811,6 @@ body {
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button { opacity: 1; }
 
-/* ── Weight increment buttons ── */
-.set-field-weight { gap: 4px; }
-.weight-btns { display: flex; gap: 4px; }
-.weight-adj-btn {
-  flex: 1;
-  padding: 4px 0;
-  font-size: 11px;
-  font-family: 'DM Mono', monospace;
-  color: var(--accent);
-  background: transparent;
-  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
-  border-radius: 4px;
-  cursor: pointer;
-  line-height: 1;
-}
-.weight-adj-btn:active { background: color-mix(in srgb, var(--accent) 10%, transparent); }
 
 /* ── Workout Summary Modal ── */
 .summary-overlay {

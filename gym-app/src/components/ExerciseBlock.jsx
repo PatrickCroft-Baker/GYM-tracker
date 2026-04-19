@@ -43,19 +43,6 @@ export default function ExerciseBlock({ ex, autoOpen, last, isLogged, isPR, time
     });
   }
 
-  function adjustWeight(idx, delta) {
-    setRows(prev => {
-      const current = parseFloat(prev[idx].weight) || 0;
-      const next = Math.max(0, Math.round((current + delta) * 4) / 4);
-      const val = String(next);
-      const updated = prev.map((r, i) => i === idx ? { ...r, weight: val, autofilled: false } : r);
-      const drafts = getDrafts();
-      drafts[ex.id] = updated.map(r => ({ reps: r.reps, weight: r.weight }));
-      saveDrafts(drafts);
-      return updated;
-    });
-  }
-
   function cascadeRow(idx, field, val) {
     // On blur: fill empty cells below with the finished value
     if (!val) return;
@@ -147,7 +134,7 @@ export default function ExerciseBlock({ ex, autoOpen, last, isLogged, isPR, time
                     onBlur={e => cascadeRow(i, 'reps', e.target.value)}
                   />
                 </div>
-                <div className="set-field set-field-weight">
+                <div className="set-field">
                   <div className="set-field-label">kg</div>
                   <input
                     type="number" inputMode="decimal" placeholder="—" min="0" max="500" step="2.5"
@@ -157,10 +144,6 @@ export default function ExerciseBlock({ ex, autoOpen, last, isLogged, isPR, time
                     onChange={e => updateRow(i, 'weight', e.target.value)}
                     onBlur={e => cascadeRow(i, 'weight', e.target.value)}
                   />
-                  <div className="weight-btns">
-                    <button className="weight-adj-btn" onClick={() => adjustWeight(i, -2.5)}>−2.5</button>
-                    <button className="weight-adj-btn" onClick={() => adjustWeight(i, +2.5)}>+2.5</button>
-                  </div>
                 </div>
                 <button className={`set-tick-btn${row.ticked ? ' ticked' : ''}`} onClick={() => tickRow(i)}>✓</button>
                 <button className="set-del-btn" onClick={() => delRow(i)}>×</button>
