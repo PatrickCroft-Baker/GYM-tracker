@@ -41,6 +41,20 @@ export async function deleteLogForExDate(exId, date) {
   if (error) throw error;
 }
 
+export async function getBestWeightForEx(exId) {
+  const { data, error } = await sb.from('workout_logs').select('sets').eq('ex_id', exId);
+  if (error || !data?.length) return 0;
+  let best = 0;
+  for (const row of data) {
+    if (!Array.isArray(row.sets)) continue;
+    for (const set of row.sets) {
+      const w = Number(set.weight);
+      if (w > best) best = w;
+    }
+  }
+  return best;
+}
+
 export async function getLastSessionForEx(exId) {
   const { data, error } = await sb.from('workout_logs').select('*')
     .eq('ex_id', exId)

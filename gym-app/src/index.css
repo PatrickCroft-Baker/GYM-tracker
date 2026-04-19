@@ -249,6 +249,17 @@ body {
   color: var(--up);
   white-space: nowrap;
 }
+.pr-pill {
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 20px;
+  padding: 3px 10px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
 .ex-chevron {
   font-size: 20px;
   color: var(--muted);
@@ -799,3 +810,106 @@ body {
 /* ── Number input spinners ── */
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button { opacity: 1; }
+
+/* ── Weight increment buttons ── */
+.set-field-weight { gap: 4px; }
+.weight-btns { display: flex; gap: 4px; }
+.weight-adj-btn {
+  flex: 1;
+  padding: 4px 0;
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-radius: 4px;
+  cursor: pointer;
+  line-height: 1;
+}
+.weight-adj-btn:active { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+
+/* ── Workout Summary Modal ── */
+.summary-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: flex-end;
+  z-index: 300;
+}
+.summary-modal {
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  padding: 32px 24px 40px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.summary-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 0.05em;
+  color: #1a1a1a;
+  margin-bottom: 24px;
+}
+.summary-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.summary-stat {
+  background: #f5f5f5;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+.summary-stat-value {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  color: var(--accent);
+  line-height: 1;
+}
+.summary-stat-label {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.summary-exercises {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.summary-ex-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.summary-ex-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+.summary-ex-detail {
+  font-size: 13px;
+  font-family: 'DM Mono', monospace;
+  color: #888;
+}
+.summary-close-btn {
+  width: 100%;
+  padding: 16px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+}

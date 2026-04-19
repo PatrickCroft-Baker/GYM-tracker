@@ -14,7 +14,7 @@ function fmtDate(iso) {
   return `${parseInt(d)} ${'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split(' ')[parseInt(m) - 1]} ${y}`;
 }
 
-export default function ExerciseBlock({ ex, autoOpen, last, isLogged, timer, onStartTimer, onSkipTimer, onSave, onRemove }) {
+export default function ExerciseBlock({ ex, autoOpen, last, isLogged, isPR, timer, onStartTimer, onSkipTimer, onSave, onRemove }) {
   const [open, setOpen] = useState(autoOpen);
   const [rows, setRows] = useState([]);
   const initialized = useRef(false);
@@ -40,6 +40,19 @@ export default function ExerciseBlock({ ex, autoOpen, last, isLogged, timer, onS
       drafts[ex.id] = next.map(r => ({ reps: r.reps, weight: r.weight }));
       saveDrafts(drafts);
       return next;
+    });
+  }
+
+  function adjustWeight(idx, delta) {
+    setRows(prev => {
+      const current = parseFloat(prev[idx].weight) || 0;
+      const next = Math.max(0, Math.round((current + delta) * 4) / 4);
+      const val = String(next);
+      const updated = prev.map((r, i) => i === idx ? { ...r, weight: val, autofilled: false } : r);
+      const drafts = getDrafts();
+      drafts[ex.id] = updated.map(r => ({ reps: r.reps, weight: r.weight }));
+      saveDrafts(drafts);
+      return updated;
     });
   }
 
@@ -105,6 +118,7 @@ export default function ExerciseBlock({ ex, autoOpen, last, isLogged, timer, onS
           </div>
         </div>
         <div className="ex-header-right">
+          {isPR && <div className="pr-pill">PR</div>}
           {isLogged && <div className="done-pill show">✓ Done</div>}
           <div className={`ex-chevron${open ? ' open' : ''}`}>▾</div>
         </div>
@@ -133,7 +147,7 @@ export default function ExerciseBlock({ ex, autoOpen, last, isLogged, timer, onS
                     onBlur={e => cascadeRow(i, 'reps', e.target.value)}
                   />
                 </div>
-                <div className="set-field">
+                <div className="set-field set-field-weight">
                   <div className="set-field-label">kg</div>
                   <input
                     type="number" inputMode="decimal" placeholder="—" min="0" max="500" step="2.5"
@@ -143,6 +157,10 @@ export default function ExerciseBlock({ ex, autoOpen, last, isLogged, timer, onS
                     onChange={e => updateRow(i, 'weight', e.target.value)}
                     onBlur={e => cascadeRow(i, 'weight', e.target.value)}
                   />
+                  <div className="weight-btns">
+                    <button className="weight-adj-btn" onClick={() => adjustWeight(i, -2.5)}>−2.5</button>
+                    <button className="weight-adj-btn" onClick={() => adjustWeight(i, +2.5)}>+2.5</button>
+                  </div>
                 </div>
                 <button className={`set-tick-btn${row.ticked ? ' ticked' : ''}`} onClick={() => tickRow(i)}>✓</button>
                 <button className="set-del-btn" onClick={() => delRow(i)}>×</button>

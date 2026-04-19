@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import ExerciseBlock from './ExerciseBlock';
 import ProgramEditor from './ProgramEditor';
+import WorkoutSummaryModal from './WorkoutSummaryModal';
 import { PROGRAM } from '../lib/program';
-import { getSession, saveSession, clearSession, getDrafts, saveDrafts, getQueue, saveQueue, getWeek, saveWeek, getCustomProgram, saveCustomProgram } from '../lib/storage';
-import { upsertLog, deleteLogForExDate, getLastSessionForEx } from '../lib/supabase';
+import { getSession, saveSession, clearSession, getDrafts, saveDrafts, getQueue, saveQueue, getWeek, saveWeek, getCustomProgram, saveCustomProgram, getSessionStart, saveSessionStart, clearSessionStart } from '../lib/storage';
+import { upsertLog, deleteLogForExDate, getLastSessionForEx, getBestWeightForEx, getLogs } from '../lib/supabase';
 import { useTimer } from '../hooks/useTimer';
 
 function todayISO() { return new Date().toISOString().slice(0, 10); }
@@ -15,6 +16,8 @@ export default function LogView({ isOnline, showToast }) {
   const [lastSessions, setLastSessions] = useState({});
   const [loading, setLoading] = useState(true);
   const [editingDay, setEditingDay] = useState(null); // { week, index }
+  const [prExIds, setPrExIds] = useState(new Set());
+  const [summary, setSummary] = useState(null);
   const { activeTimer, startTimer, skipTimer } = useTimer();
 
   const days = program[week];
@@ -40,7 +43,22 @@ export default function LogView({ isOnline, showToast }) {
   async function handleSave(ex, setsData) {
     if (!setsData) { showToast('Fill in all sets first (reps > 0, weight ≥ 0)', true); return; }
 
+    // Record session start on first exercise saved
+    if (!Object.keys(session).length && !getSessionStart()) {
+      saveSessionStart(Date.now());
+    }
+
     const payload = { log_date: todayISO(), ex_id: ex.id, ex_name: ex.name, sets: setsData };
+
+    // PR check — read historical best BEFORE upserting so the new record isn't included
+    let isPRSave = false;
+    if (isOnline && setsData.length > 0) {
+      try {
+        const prevBest = await getBestWeightForEx(ex.id);
+        const newBest = Math.max(...setsData.map(s => s.weight));
+        if (newBest > prevBest) isPRSave = true;
+      } catch (e) { console.error('PR check failed:', e); }
+    }
 
     if (!isOnline) {
       const q = getQueue().filter(i => !(i.ex_id === ex.id && i.log_date === todayISO()));
@@ -56,13 +74,15 @@ export default function LogView({ isOnline, showToast }) {
       }
     }
 
+    if (isPRSave) setPrExIds(prev => new Set([...prev, ex.id]));
+
     const next = { ...session, [ex.id]: true };
     setSession(next);
     saveSession(next);
     const drafts = getDrafts();
     delete drafts[ex.id];
     saveDrafts(drafts);
-    showToast(`${ex.name} saved ✓`);
+    showToast(isPRSave ? `${ex.name} — new best` : `${ex.name} saved ✓`);
   }
 
   async function handleRemove(ex) {
@@ -71,16 +91,46 @@ export default function LogView({ isOnline, showToast }) {
     delete next[ex.id];
     setSession(next);
     saveSession(next);
+    setPrExIds(prev => { const s = new Set(prev); s.delete(ex.id); return s; });
     await deleteLogForExDate(ex.id, todayISO());
     showToast('Log removed — re-edit and save');
   }
 
-  function logWorkout() {
+  async function logWorkout() {
     const count = Object.keys(session).length;
     if (!count) { showToast('Save at least one exercise first', true); return; }
+
+    try {
+      const today = todayISO();
+      const allLogs = await getLogs();
+      const todayLogs = allLogs.filter(l => l.date === today && session[l.exId]);
+      const startTime = getSessionStart();
+
+      const exercises = todayLogs.map(l => ({
+        name: l.exName,
+        sets: l.sets.length,
+        volume: l.sets.reduce((acc, s) => acc + s.reps * s.weight, 0),
+      }));
+
+      setSummary({
+        exerciseCount: exercises.length,
+        totalSets: exercises.reduce((acc, e) => acc + e.sets, 0),
+        totalVolume: exercises.reduce((acc, e) => acc + e.volume, 0),
+        duration: startTime ? Date.now() - startTime : null,
+        exercises,
+      });
+    } catch (e) {
+      console.error('Failed to load summary:', e);
+      showToast('Could not load summary — please try again', true);
+    }
+  }
+
+  function handleSummaryClose() {
     clearSession();
+    clearSessionStart();
     setSession({});
-    showToast(`Session complete — ${count} exercise${count !== 1 ? 's' : ''} logged`);
+    setPrExIds(new Set());
+    setSummary(null);
   }
 
   function handleDaySave(weekKey, dayIndex, newExercises) {
@@ -125,7 +175,6 @@ export default function LogView({ isOnline, showToast }) {
                     onClick={e => {
                       e.stopPropagation();
                       setEditingDay(isEditing ? null : { week, index: i });
-                      // ensure body is expanded
                       const body = e.currentTarget.closest('.day-card').querySelector('.day-body');
                       const chev = e.currentTarget.closest('.day-card').querySelector('.day-chevron');
                       if (body) body.classList.remove('collapsed');
@@ -156,6 +205,7 @@ export default function LogView({ isOnline, showToast }) {
                       autoOpen={i === 0 && j === 0}
                       last={lastSessions[ex.id]}
                       isLogged={!!session[ex.id]}
+                      isPR={prExIds.has(ex.id)}
                       timer={activeTimer}
                       onStartTimer={startTimer}
                       onSkipTimer={skipTimer}
@@ -173,6 +223,8 @@ export default function LogView({ isOnline, showToast }) {
       <div className="log-workout-bar">
         <button className="btn-log-workout" onClick={logWorkout}>Log Workout</button>
       </div>
+
+      <WorkoutSummaryModal summary={summary} onClose={handleSummaryClose} />
     </>
   );
 }

@@ -1,0 +1,5 @@
+{
+  "command": "npm run dev",
+  "cwd": "gym-app",
+  "url": "http://localhost:5173"
+}

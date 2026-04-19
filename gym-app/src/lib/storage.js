@@ -25,3 +25,8 @@ export const saveWeek = w => localStorage.setItem(WEEK_KEY, w);
 export const getCustomProgram = () => parse(PROG_KEY, null);
 export const saveCustomProgram = p => localStorage.setItem(PROG_KEY, JSON.stringify(p));
 export const clearCustomProgram = () => localStorage.removeItem(PROG_KEY);
+
+const SESSION_START_KEY = 'wt_session_start_v1';
+export const getSessionStart = () => parse(SESSION_START_KEY, null);
+export const saveSessionStart = t => localStorage.setItem(SESSION_START_KEY, JSON.stringify(t));
+export const clearSessionStart = () => localStorage.removeItem(SESSION_START_KEY);
